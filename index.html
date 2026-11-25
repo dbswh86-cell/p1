@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <!-- 휴대폰에서도 화면 폭에 맞게 보이도록 설정 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#EFE5DC">
+  <title>프라나 · 숨 쉬는 명상</title>
+  <meta name="description" content="지금 내 상태를 고르면, 그 상태에 맞는 호흡법을 숨 쉬는 원과 부드러운 소리로 5분간 이끌어주는 명상 웹앱">
+  <!-- 브라우저 탭 아이콘: 파일 없이 SVG 코드로 직접 그린 코랄 원 -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%23E4401E'/%3E%3Ccircle cx='16' cy='16' r='6.5' fill='%23EFE5DC'/%3E%3C/svg%3E">
+
+  <!-- Pretendard 글꼴 (CDN). 불러오지 못하면 style.css의 시스템 글꼴로 대체됩니다 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!--
+    이 앱은 "한 페이지 앱(SPA)"입니다.
+    아래의 <section class="screen"> 하나하나가 화면 하나이고,
+    app.js가 그중 하나만 보이게 바꿔 끼우는 방식으로 화면을 전환합니다.
+  -->
+  <main id="app">
+
+    <!-- ===================== 1. 홈 화면 ===================== -->
+    <section class="screen" id="screen-home" aria-labelledby="home-title">
+      <header class="home-header">
+        <!-- 로고: 굵은 대문자 PRANA (보라색) -->
+        <div class="logo" role="img" aria-label="프라나">
+          <span class="logo-en" aria-hidden="true">PRANA</span>
+        </div>
+      </header>
+
+      <!-- 다양한 사람들이 편안하게 숨 쉬는 얼굴 타일 모자이크 (app.js가 그림을 채워요) -->
+      <div class="mosaic" id="mosaic" aria-hidden="true"></div>
+
+      <h1 id="home-title" class="home-question" tabindex="-1">지금 어떤 상태인가요?</h1>
+
+      <!-- 상태 카드 3장이 app.js에서 자동으로 채워집니다 -->
+      <div class="state-list" id="state-list"></div>
+
+      <footer class="home-footer">
+        <button type="button" class="soft-button" id="btn-intro">처음이신가요?</button>
+      </footer>
+    </section>
+
+    <!-- ===================== 2. 추천 화면 ===================== -->
+    <section class="screen" id="screen-recommend" aria-labelledby="rec-title" hidden>
+      <div class="top-bar">
+        <button type="button" class="icon-button" id="btn-rec-back" aria-label="뒤로 가기">
+          <!-- 왼쪽 화살표 아이콘 -->
+          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+            <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="rec-body">
+        <!-- 선택한 상태의 일러스트 (app.js가 채워요) -->
+        <div class="rec-illust" id="rec-illust" aria-hidden="true"></div>
+        <p class="rec-state" id="rec-state">불안·긴장</p>
+        <h1 class="rec-title" id="rec-title" tabindex="-1">호흡법 이름</h1>
+        <p class="rec-rhythm" id="rec-rhythm">리듬</p>
+        <p class="rec-why" id="rec-why">도움이 되는 이유</p>
+
+        <!-- 안전 안내: 항상 표시 -->
+        <p class="safety-note" role="note">
+          어지럽거나 불편하면 언제든 멈추고 평소처럼 숨 쉬세요.
+        </p>
+      </div>
+
+      <div class="bottom-actions">
+        <button type="button" class="primary-button" id="btn-start">시작하기</button>
+      </div>
+    </section>
+
+    <!-- ===================== 3. 세션 화면 (핵심) ===================== -->
+    <section class="screen screen-session" id="screen-session" aria-labelledby="breath-label" hidden>
+      <!-- 위: 지금 하고 있는 호흡법 이름 + 오른쪽 구석 소리 켜기/끄기 -->
+      <div class="session-top">
+        <span class="session-top-spacer" aria-hidden="true"></span>
+        <p class="session-name" id="session-name">호흡법 이름</p>
+        <button type="button" class="icon-button sound-button" id="btn-sound"
+                aria-label="소리 끄기" aria-pressed="true">
+          <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"
+               fill="none" stroke="currentColor" stroke-width="1.8"
+               stroke-linecap="round" stroke-linejoin="round">
+            <!-- 스피커 몸통 (항상 보임) -->
+            <path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4z"/>
+            <!-- 소리 켜짐: 퍼져 나가는 소리 물결 -->
+            <g class="sound-on-mark">
+              <path d="M15.5 9a4 4 0 0 1 0 6"/>
+              <path d="M18 6.5a7.5 7.5 0 0 1 0 11"/>
+            </g>
+            <!-- 소리 꺼짐: X 표시 -->
+            <g class="sound-off-mark">
+              <path d="M16 9.5l5 5M21 9.5l-5 5"/>
+            </g>
+          </svg>
+        </button>
+      </div>
+
+      <!-- 가운데: 숨 쉬는 원 -->
+      <div class="breath-area">
+        <div class="breath-stage" id="breath-stage">
+          <!-- 멈춤 때 원 바깥에 나타나는 단색 고리 -->
+          <div class="breath-ring" id="breath-ring" aria-hidden="true"></div>
+          <!-- 실제로 커졌다 작아지는 원 (피곤·무기력에서는 안에서 해가 떠올라요) -->
+          <div class="breath-circle" id="breath-circle" aria-hidden="true">
+            <div class="breath-sun"></div>
+          </div>
+          <!-- 원 위에 겹쳐 보이는 글자 (원과 함께 줄어들지 않도록 따로 둠) -->
+          <div class="breath-text">
+            <!-- aria-live: 안내 문구가 바뀌면 화면 읽기 프로그램이 읽어줘요 -->
+            <h1 class="breath-label" id="breath-label" tabindex="-1" aria-live="polite">들이쉬세요</h1>
+            <p class="breath-count" id="breath-count" aria-hidden="true">4</p>
+          </div>
+        </div>
+        <!-- 원 아래 잠깐 나타나는 안내 (예: 4-7-8 → 느린 호흡으로 바뀔 때) -->
+        <p class="breath-notice" id="breath-notice" aria-live="polite"></p>
+      </div>
+
+      <!-- 아래: 남은 시간과 버튼 -->
+      <div class="session-bottom">
+        <p class="session-remaining">
+          <span class="sr-only">전체 남은 시간</span>
+          <span id="session-remaining">5:00</span>
+        </p>
+        <div class="session-controls">
+          <button type="button" class="session-button" id="btn-pause" aria-pressed="false">일시정지</button>
+          <button type="button" class="session-button" id="btn-stop">그만하기</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 4. 마무리 화면 ===================== -->
+    <section class="screen" id="screen-finish" aria-labelledby="finish-title" hidden>
+      <div class="finish-body">
+        <!-- 고요하게 빛나는 작은 원 -->
+        <div class="finish-circle" aria-hidden="true"></div>
+        <h1 class="finish-title" id="finish-title" tabindex="-1">
+          수고했어요.<br>지금은 좀 어떠세요?
+        </h1>
+      </div>
+      <div class="bottom-actions stacked">
+        <button type="button" class="primary-button" id="btn-again">한 번 더 하기</button>
+        <button type="button" class="secondary-button" id="btn-home">처음으로</button>
+      </div>
+    </section>
+
+    <!-- ===================== 5. 입문 안내 화면 ("처음이신가요?") ===================== -->
+    <section class="screen screen-intro" id="screen-intro" aria-labelledby="intro-title" hidden>
+      <!-- 화면 읽기 프로그램용 제목 (화면에는 안 보임) -->
+      <h1 class="sr-only" id="intro-title" tabindex="-1">처음이신가요? 명상 입문 안내</h1>
+
+      <!-- 오른쪽 위: 건너뛰기 -->
+      <div class="intro-top">
+        <button type="button" class="link-button skip-button" id="btn-intro-skip">건너뛰기</button>
+      </div>
+
+      <!-- 카드가 지나가는 창. 카드 6장이 가로로 한 줄로 서 있고, 이 창으로 한 장씩만 보여요 -->
+      <div class="intro-viewport" id="intro-viewport">
+        <div class="intro-track" id="intro-track">
+          <!-- 카드 6장은 app.js가 채워요 -->
+        </div>
+      </div>
+
+      <!-- 아래: 이전 · 점 표시 · 다음 -->
+      <div class="intro-nav">
+        <button type="button" class="nav-button" id="btn-intro-prev" aria-label="이전 카드">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+            <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>이전</span>
+        </button>
+
+        <!-- 점 표시 (●○○○○○) -->
+        <div class="intro-dots" id="intro-dots" aria-hidden="true"></div>
+        <!-- 화면 읽기 프로그램용 위치 안내 -->
+        <p class="sr-only" id="intro-position" aria-live="polite"></p>
+
+        <button type="button" class="nav-button" id="btn-intro-next" aria-label="다음 카드">
+          <span>다음</span>
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+            <path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

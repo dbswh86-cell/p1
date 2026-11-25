@@ -1,0 +1,926 @@
+/* =========================================================
+   프라나 (Prana) — 스타일
+   ---------------------------------------------------------
+   디자인 스타일: 플랫 지오메트릭 일러스트
+   - 테두리 선, 그림자, 그라데이션 없이 "단색 면"으로만 표현해요.
+   - 휴대폰 세로 화면을 기준으로 먼저 만들고,
+     PC에서는 가운데 정렬된 적당한 폭으로 보여줘요.
+   ========================================================= */
+
+/* ---------- 1. 색상 팔레트 & 공통 값 (CSS 변수) ----------
+   여기 값만 바꾸면 앱 전체 색이 함께 바뀌어요.
+   ※ SVG 일러스트 안의 색은 app.js의 PALETTE에 같은 값이 있어요. */
+:root {
+  --cream: #EFE5DC;      /* 기본 배경 */
+  --ink: #29230D;        /* 기본 글자 */
+  --olive: #493E16;      /* 깊은 색, 머리카락 */
+  --coral: #E4401E;      /* 주요 버튼 */
+  --pink: #E05573;       /* 보조 포인트 */
+  --mustard: #E8CC10;    /* 밝은 포인트, 해와 달 */
+  --orange: #E08538;     /* 따뜻한 보조 */
+  --aqua: #73C3C7;       /* 차분한 색 */
+  --teal: #16A9AC;       /* 아쿠아의 진한 버전, 소량만 */
+  --skin-light: #EEC7AB;
+  --skin-mid: #EAA275;
+  --skin-deep: #AE5122;
+  --purple: #6A4C9C;     /* 로고 색 (크림 배경 위 대비 약 5.4:1) */
+
+  /* 지금 화면의 분위기 색. app.js(setMood)가 상태에 맞게 바꿔줘요 */
+  --page-bg: var(--cream);
+  --page-text: var(--ink);
+  --pill-bg: var(--ink);        /* 상태 이름 꼬리표 */
+  --pill-text: var(--cream);
+  --note-bg: var(--ink);        /* 안전 안내 상자 */
+  --note-text: var(--cream);
+  --circle: var(--cream);       /* 호흡 원 */
+  --circle-text: var(--ink);    /* 호흡 원 안의 글자 */
+  --ring: var(--teal);          /* 멈춤 때 나타나는 고리 */
+  --sun: var(--orange);         /* 피곤·무기력 세션의 떠오르는 해 */
+  --btn2-bg: var(--ink);        /* 보조 버튼 */
+  --btn2-text: var(--cream);
+
+  --radius: 22px;               /* 카드 모서리 둥글기 */
+  --max-width: 480px;           /* PC에서 보여줄 최대 폭 */
+  --touch: 48px;                /* 터치 버튼 최소 크기 (44px 이상) */
+}
+
+/* ---------- 2. 기본 초기화 ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  /* Pretendard가 없으면 시스템 글꼴로 대체 */
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+    "Malgun Gothic", "맑은 고딕", "Segoe UI", sans-serif;
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--page-text);
+  background: var(--page-bg);
+  transition: background-color 0.5s ease, color 0.5s ease;
+  -webkit-font-smoothing: antialiased;
+  word-break: keep-all; /* 한국어 단어가 중간에서 끊기지 않게 */
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  /* 휴대폰에서 빠르게 두 번 눌러도 화면이 확대되지 않고 바로 반응하게 */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 키보드로 이동할 때 보이는 포커스 테두리 (접근성: 장식이 아니라 꼭 필요한 표시) */
+:focus-visible {
+  outline: 3px solid var(--page-text);
+  outline-offset: 3px;
+  border-radius: 10px;
+}
+
+/* 화면 전환용으로 제목에 포커스가 옮겨갈 때는 테두리 숨김 */
+h1:focus {
+  outline: none;
+}
+
+/* 화면에는 안 보이지만 화면 읽기 프로그램은 읽는 글자 */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- 3. 화면(screen) 공통 틀 ---------- */
+#app {
+  min-height: 100%;
+}
+
+.screen {
+  min-height: 100vh;
+  min-height: 100dvh; /* 휴대폰 주소창 높이를 고려한 단위 */
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 20px 20px calc(24px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  animation: screen-in 0.4s ease;
+}
+
+.screen[hidden] {
+  display: none;
+}
+
+@keyframes screen-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ---------- 4. 버튼 (둥근 모서리 · 단색 채움 · 그림자 없음) ---------- */
+/* 주요 버튼: 코랄 + 크림 글자
+   (코랄 위 크림 글자는 대비가 약해서, 큰 글자 기준(19px 굵게)을 넘도록 크게 써요) */
+.primary-button {
+  width: 100%;
+  min-height: 58px;
+  border: none;
+  border-radius: 999px;
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--cream);
+  background: var(--coral);
+  transition: transform 0.15s ease;
+}
+
+.primary-button:active {
+  transform: scale(0.98);
+}
+
+/* 보조 버튼: 화면 분위기에 맞는 단색 */
+.secondary-button {
+  width: 100%;
+  min-height: 54px;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 999px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--btn2-text);
+  background: var(--btn2-bg);
+}
+
+/* 은은한 베이지 둥근 버튼 ("처음이신가요?")
+   크림 배경보다 살짝만 진한 베이지라 눈에 튀지 않고 조용히 자리 잡아요.
+   글자는 올리브색으로 읽기 쉬운 대비(약 7:1)는 유지해요. */
+.soft-button {
+  min-height: var(--touch);
+  padding: 10px 24px;
+  border: none;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--olive);
+  background: #E3D5C6; /* 크림(#EFE5DC)을 살짝 진하게 한 베이지 */
+  transition: background-color 0.2s ease;
+}
+
+.soft-button:hover {
+  background: #DCCCBB;
+}
+
+/* 글자 링크처럼 보이는 버튼 */
+.link-button {
+  min-height: var(--touch);
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 2px;
+}
+
+/* 아이콘만 있는 동그란 버튼 */
+.icon-button {
+  width: var(--touch);
+  height: var(--touch);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+}
+
+/* ---------- 5. 홈 화면 ---------- */
+.home-header {
+  padding-top: 4px;
+}
+
+/* 로고: 굵은 대문자 PRANA (보라색) */
+.logo {
+  display: inline-flex;
+  line-height: 1.1;
+}
+
+.logo-en {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: var(--purple);
+}
+
+/* 얼굴 타일 모자이크 (화면 높이의 약 3분의 1)
+   4칸 × 2줄 격자에 크기가 다른 둥근 사각형 타일 5개를 배치 */
+.mosaic {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 8px;
+  height: clamp(190px, 32vh, 280px);
+  margin: 18px 0 26px;
+}
+
+.tile {
+  border-radius: 20px;
+  overflow: hidden; /* 타일 밖으로 나간 얼굴은 잘려 보이게 */
+}
+
+.tile svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.tile-a { grid-column: 1;          grid-row: 1 / span 2; }
+.tile-b { grid-column: 2;          grid-row: 1; }
+.tile-c { grid-column: 3;          grid-row: 1; }
+.tile-d { grid-column: 4;          grid-row: 1 / span 2; }
+.tile-e { grid-column: 2 / span 2; grid-row: 2; }
+
+.home-question {
+  font-size: 27px;
+  font-weight: 800;
+  line-height: 1.35;
+  margin: 0 0 16px;
+}
+
+/* 상태 카드 목록 */
+.state-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+/* 상태 카드: 각 상태의 메인 색 단색 배경 */
+.state-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  min-height: 104px;
+  padding: 10px 18px 10px 10px;
+  text-align: left;
+  border: none;
+  border-radius: var(--radius);
+  color: var(--card-text);
+  background: var(--card-bg);
+  transition: transform 0.2s ease;
+}
+
+.state-card:hover {
+  transform: translateY(-2px);
+}
+
+.state-card:active {
+  transform: scale(0.98);
+}
+
+.state-card:focus-visible {
+  outline-color: var(--ink);
+}
+
+/* 카드 왼쪽 일러스트 타일 */
+.state-card-illust {
+  flex-shrink: 0;
+  width: 84px;
+  height: 84px;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.state-card-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.state-card-name {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* 설명 한 줄은 짧고 굵게 */
+.state-card-desc {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.home-footer {
+  text-align: center;
+  padding-top: 20px;
+}
+
+/* ---------- 6. 일러스트 공통 & 움직임 ----------
+   움직임은 느리고 부드럽게, 도형 하나하나 단위로만 */
+.illust {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* SVG 안 도형이 자기 자신을 기준으로 움직이게 */
+.illust .m {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* 숨 쉬는 사람: 얼굴이 아주 살짝 오르내림 */
+.illust .m-float {
+  animation: float 7s ease-in-out infinite;
+}
+.illust .m-float.d1 { animation-delay: -2s; }
+.illust .m-float.d2 { animation-delay: -4.5s; }
+.illust .m-float.d3 { animation-delay: -1s; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-2.5%); }
+}
+
+/* 반원 물결: 아래를 기준으로 부풀었다 가라앉으며 잔잔해짐 */
+.illust .m-wave {
+  transform-origin: center bottom;
+  animation: wave 8s ease-in-out infinite;
+}
+.illust .m-wave.d1 { animation-delay: -2.7s; }
+.illust .m-wave.d2 { animation-delay: -5.3s; }
+
+@keyframes wave {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(0.82); }
+}
+
+/* 별: 은은하게 반짝임 */
+.illust .m-twinkle {
+  animation: twinkle 3.6s ease-in-out infinite;
+}
+.illust .m-twinkle.d1 { animation-delay: -1.2s; }
+.illust .m-twinkle.d2 { animation-delay: -2.4s; }
+
+@keyframes twinkle {
+  0%, 100% { opacity: 1;   transform: scale(1); }
+  50%      { opacity: 0.3; transform: scale(0.6); }
+}
+
+/* 해: 아주 천천히 떠올랐다 내려앉음 */
+.illust .m-rise {
+  animation: rise 10s ease-in-out infinite alternate;
+  animation-delay: -4s;
+}
+
+@keyframes rise {
+  from { transform: translateY(14%); }
+  to   { transform: translateY(0); }
+}
+
+/* 고리: 천천히 나타났다 사라짐 (빛 번짐 대신) */
+.illust .m-ring {
+  animation: ring 5s ease-in-out infinite;
+}
+.illust .m-ring.d1 { animation-delay: -2.5s; }
+
+@keyframes ring {
+  0%, 100% { opacity: 0;   transform: scale(0.85); }
+  50%      { opacity: 1;   transform: scale(1); }
+}
+
+/* 배: 아래를 기준으로 부풀었다 가라앉음 (4초 들숨 · 4초 날숨) */
+.illust .m-belly {
+  transform-origin: center bottom;
+  animation: belly 8s ease-in-out infinite;
+}
+
+@keyframes belly {
+  0%, 100% { transform: scaleY(0.4); }
+  50%      { transform: scaleY(1); }
+}
+
+/* 코로 들어오는 숨 (작은 원) */
+.illust .m-air {
+  animation: air 8s ease-in-out infinite;
+}
+
+@keyframes air {
+  0%, 100% { opacity: 0; }
+  20%      { opacity: 1; }
+  45%      { opacity: 0; }
+}
+
+/* 생각 구름: 하늘을 천천히 가로질러 지나감 */
+.illust .m-cloud {
+  animation: cloud 18s linear infinite;
+  animation-delay: -6s;
+}
+
+@keyframes cloud {
+  0%   { transform: translateX(-60%); opacity: 0; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { transform: translateX(60%); opacity: 0; }
+}
+
+/* 4번 입문 카드: 4초 커지고 4초 작아지며 숨 쉬는 원 */
+.illust .m-breath {
+  animation: demo-breathe 8s ease-in-out infinite;
+}
+
+@keyframes demo-breathe {
+  0%, 100% { transform: scale(0.55); }
+  50%      { transform: scale(1); }
+}
+
+/* ---------- 7. 추천 화면 ---------- */
+.top-bar {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.top-bar .icon-button {
+  margin-left: -10px;
+}
+
+.rec-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* 추천 화면의 큰 일러스트 타일 */
+.rec-illust {
+  width: 148px;
+  height: 148px;
+  margin-bottom: 24px;
+  border-radius: 28px;
+  overflow: hidden;
+}
+
+/* "불안·긴장" 같은 상태 이름 꼬리표 */
+.rec-state {
+  align-self: flex-start;
+  margin: 0 0 12px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--pill-text);
+  background: var(--pill-bg);
+}
+
+.rec-title {
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.3;
+  margin: 0 0 10px;
+}
+
+.rec-rhythm {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 18px;
+}
+
+.rec-why {
+  font-size: 17px;
+  font-weight: 500;
+  margin: 0 0 24px;
+}
+
+/* 안전 안내 상자 */
+.safety-note {
+  margin: 0;
+  padding: 14px 18px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--note-text);
+  background: var(--note-bg);
+  border-radius: 16px;
+}
+
+.bottom-actions {
+  padding-top: 24px;
+}
+
+.bottom-actions.stacked {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---------- 8. 세션 화면 ---------- */
+.screen-session {
+  text-align: center;
+}
+
+/* 위쪽 줄: [빈칸] [호흡법 이름] [소리 버튼] — 이름이 정확히 가운데 오도록 3칸 */
+.session-top {
+  min-height: var(--touch);
+  display: grid;
+  grid-template-columns: var(--touch) 1fr var(--touch);
+  align-items: center;
+}
+
+.session-name {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* 소리 켜기/끄기 버튼 (오른쪽 구석) */
+.sound-button {
+  margin: 0 -10px 0 0;
+}
+
+.sound-button .sound-off-mark {
+  display: none;
+}
+
+.sound-button[aria-pressed="false"] .sound-on-mark {
+  display: none;
+}
+
+.sound-button[aria-pressed="false"] .sound-off-mark {
+  display: inline;
+}
+
+.breath-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 원이 놓이는 정사각형 무대. 휴대폰 폭에 맞춰 크기가 바뀜 */
+.breath-stage {
+  position: relative;
+  /* 폭의 74%, 최대 300px. 키가 작은 화면(가로 모드 등)에서는 높이의 44%까지만 */
+  width: min(74vw, 300px, 44vh);
+  height: min(74vw, 300px, 44vh);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 숨 쉬는 원 (단색). 크기(scale)는 app.js가 매 순간 계산해서 넣어줘요 */
+.breath-circle {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--circle);
+  overflow: hidden; /* 안쪽의 해가 원 밖으로 나가지 않게 */
+  transform: scale(0.5);
+  will-change: transform;
+}
+
+/* 피곤·무기력: 원 안에서 들숨 때 떠오르는 오렌지 반원(해) */
+.breath-sun {
+  display: none;
+  position: absolute;
+  left: 18%;
+  width: 64%;
+  height: 32%;
+  bottom: 0;
+  border-radius: 999px 999px 0 0; /* 위가 둥근 반원 */
+  background: var(--sun);
+  /* --breath: 0(다 내쉼) ~ 1(다 들이쉼). app.js가 넣어줘요 */
+  transform: translateY(calc((1 - var(--breath, 0)) * 100%));
+}
+
+.breath-stage.has-sun .breath-sun {
+  display: block;
+}
+
+/* 멈춤 때 원 바깥에 나타나는 단색 고리 */
+.breath-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 7px solid var(--ring);
+  opacity: 0;
+  transform: scale(0.57);
+  transition: opacity 1.2s ease;
+  pointer-events: none;
+}
+
+/* 멈춤 구간: 고리가 천천히 나타났다 사라졌다 반복 */
+.breath-stage.is-hold .breath-ring {
+  animation: hold-ring 3s ease-in-out infinite;
+}
+
+@keyframes hold-ring {
+  0%, 100% { opacity: 0.15; }
+  50%      { opacity: 1; }
+}
+
+/* 일시정지 중: 원이 살짝 흐려지고 고리 움직임도 멈춤 */
+.screen-session.is-paused .breath-circle {
+  opacity: 0.6;
+}
+.screen-session.is-paused .breath-ring {
+  animation-play-state: paused;
+}
+
+/* 원 위에 겹쳐지는 글자 (원과 함께 줄어들지 않도록 따로 둠) */
+.breath-text {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--circle-text);
+}
+
+/* 글자 크기는 무대(원) 크기에 맞춰 함께 줄어들어요 → 가장 작은 원 안에도 들어감 */
+.breath-label {
+  margin: 0;
+  font-size: clamp(18px, 6vw, 24px);
+  font-weight: 800;
+}
+
+.breath-count {
+  margin: 0;
+  font-size: clamp(32px, 10vw, 40px);
+  font-weight: 500;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 원 아래 잠깐 나타나는 안내 */
+.breath-notice {
+  min-height: 3.2em;
+  max-width: 300px;
+  margin: 16px 0 0;
+  font-size: 16px;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+
+.breath-notice.is-visible {
+  opacity: 1;
+}
+
+.session-bottom {
+  padding-top: 8px;
+}
+
+.session-remaining {
+  margin: 0 0 16px;
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.session-controls {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* 세션 화면 버튼: 단색 채움 */
+.session-button {
+  flex: 1;
+  max-width: 160px;
+  min-height: 52px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 999px;
+  font-weight: 700;
+  color: var(--btn2-text);
+  background: var(--btn2-bg);
+}
+
+/* ---------- 9. 마무리 화면 ---------- */
+.finish-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 36px;
+}
+
+/* 고요한 원 + 천천히 나타났다 사라지는 고리 */
+.finish-circle {
+  position: relative;
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  background: var(--circle);
+}
+
+.finish-circle::after {
+  content: "";
+  position: absolute;
+  inset: -16px;
+  border-radius: 50%;
+  border: 6px solid var(--ring);
+  animation: hold-ring 4s ease-in-out infinite;
+}
+
+.finish-title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+/* ---------- 10. 입문 안내 화면 ---------- */
+.intro-top {
+  display: flex;
+  justify-content: flex-end;
+  min-height: var(--touch);
+}
+
+.skip-button {
+  margin-right: -12px;
+  text-decoration: none;
+}
+
+/* 카드를 보여주는 창: 밖으로 나간 카드는 잘라서 안 보이게 */
+.intro-viewport {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  /* 세로 스크롤은 브라우저에 맡기고, 가로로 미는 동작은 app.js가 처리 */
+  touch-action: pan-y;
+  margin: 0 -20px;
+}
+
+/* 카드 6장이 가로로 늘어선 줄. app.js가 transform으로 좌우로 옮김 */
+.intro-track {
+  display: flex;
+  width: 100%;
+  transition: transform 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: transform;
+}
+
+.intro-track.is-dragging {
+  transition: none;
+}
+
+.intro-slide {
+  flex: 0 0 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 8px 28px 16px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* 카드 위 그림 타일 */
+.intro-illust {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+  height: 200px;
+  margin-bottom: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 28px;
+  overflow: hidden;
+}
+
+.intro-slide h2 {
+  margin: 0 0 12px;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.intro-slide p {
+  margin: 0;
+  max-width: 340px;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+/* 4번 카드: 탭하면 소리를 들려주는 그림 버튼 */
+.intro-preview {
+  cursor: pointer;
+}
+
+.preview-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--cream);
+}
+
+/* 6번 카드의 "이제 시작해볼까요?" 버튼 */
+.intro-start {
+  margin-top: 28px;
+  max-width: 300px;
+}
+
+/* 아래쪽 이전 · 점 · 다음 */
+.intro-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 12px;
+}
+
+.nav-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 88px;
+  min-height: var(--touch);
+  padding: 8px 12px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  font-weight: 700;
+}
+
+#btn-intro-next {
+  justify-content: flex-end;
+}
+
+.nav-button[disabled] {
+  visibility: hidden;
+}
+
+.intro-dots {
+  display: flex;
+  gap: 10px;
+}
+
+/* 점: 지금 카드는 코랄로 꽉 찬 점, 나머지는 연한 단색 점 */
+.intro-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--ink);
+  opacity: 0.2;
+  transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.3s ease;
+}
+
+.intro-dot.is-current {
+  background: var(--coral);
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+/* ---------- 11. 움직임 줄이기 설정 존중 (접근성) ----------
+   호흡 원은 안내에 꼭 필요하니 그대로 두고, 나머지 장식 움직임만 끕니다 */
+@media (prefers-reduced-motion: reduce) {
+  .screen {
+    animation: none;
+  }
+  .state-card,
+  .primary-button,
+  body {
+    transition: none;
+  }
+  /* 일러스트는 멈춘 채 가장 잔잔한 모습으로 */
+  .illust .m {
+    animation: none !important;
+  }
+  .illust .m-ring { opacity: 1; }
+  .illust .m-air { opacity: 1; }
+  /* 4번 입문 카드의 숨 쉬는 원은 안내용이라 유지 */
+  .illust .m-breath {
+    animation: demo-breathe 8s ease-in-out infinite !important;
+  }
+  /* 멈춤 고리는 깜빡이지 않고 그대로 보이게 */
+  .breath-stage.is-hold .breath-ring {
+    animation: none;
+    opacity: 1;
+  }
+  .finish-circle::after {
+    animation: none;
+    opacity: 1;
+  }
+  .intro-track {
+    transition: none;
+  }
+}
